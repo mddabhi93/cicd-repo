@@ -1,5 +1,5 @@
 <html>  
-<body  bgcolor="lightblue">   
+<body  bgcolor="pink">   
 <%= "Hello World" %>  
 </body>  
 </html>  
