@@ -16,32 +16,34 @@ phases:
         - aws --version
         # Login to ECR Registry for docker to push the image to ECR Repository
         - echo "Login in to Amazon ECR..."
-        - $(aws ecr get-login --no-include-email)
+        # - $(aws ecr get-login --no-include-email)
+        - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 608420342248.dkr.ecr.us-east-1.amazonaws.com
         - export KUBECONFIG=$HOME/.kube/config
   build:
     commands:
       # Build Docker Image
       - echo "Build started on `date`"
       - echo "Building the Docker image..."
-      - docker build --tag $REPOSITORY_URI:$TAG .
-      - docker push $REPOSITORY_URI:$TAG
+      - docker build -t tomcat-ecr-image .
+      - docker tag tomcat-ecr-image:latest 608420342248.dkr.ecr.us-east-1.amazonaws.com/tomcat-ecr-image:latest
+      - docker push 608420342248.dkr.ecr.us-east-1.amazonaws.com/tomcat-ecr-image:latest
   post_build:
     commands:
       # Push Docker Image to ECR Repository
       - echo "Build completed on `date`"
-      - echo "Pushing the Docker image to ECR Repository"
+      #- echo "Pushing the Docker image to ECR Repository"
       # - docker push $REPOSITORY_URI:$TAG
-      - echo "Docker Image Push to ECR Completed -  $REPOSITORY_URI:$TAG"    
+      #- echo "Docker Image Push to ECR Completed -  $REPOSITORY_URI:$TAG"    
       # Extracting AWS Credential Information using STS Assume Role for kubectl
       - echo "Setting Environment Variables related to AWS CLI for Kube Config Setup"          
       - CREDENTIALS=$(aws sts assume-role --role-arn $EKS_KUBECTL_ROLE_ARN --role-session-name codebuild-kubectl --duration-seconds 900)
-      - export AWS_ACCESS_KEY_ID="$(echo ${CREDENTIALS} | jq -r '.Credentials.AccessKeyId')"
-      - export AWS_SECRET_ACCESS_KEY="$(echo ${CREDENTIALS} | jq -r '.Credentials.SecretAccessKey')"
-      - export AWS_SESSION_TOKEN="$(echo ${CREDENTIALS} | jq -r '.Credentials.SessionToken')"
-      - export AWS_EXPIRATION=$(echo ${CREDENTIALS} | jq -r '.Credentials.Expiration')
+      - export AWS_ACCESS_KEY_ID=AKIAY3KFNVHUD55AK3XH
+      - export AWS_SECRET_ACCESS_KEY=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
+      #- export AWS_SESSION_TOKEN="$(echo ${CREDENTIALS} | jq -r '.Credentials.SessionToken')"
+      #- export AWS_EXPIRATION=$(echo ${CREDENTIALS} | jq -r '.Credentials.Expiration')
       # Setup kubectl with our EKS Cluster              
       - echo "Update Kube Config"      
-      - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME
+      - aws eks --region us-east-1 update-kubeconfig --name sad-ms-eks
       # Apply changes to our Application using kubectl
       - echo "Apply changes to kube manifests"
       - ls           
