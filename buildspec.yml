@@ -6,9 +6,6 @@ phases:
   install:
     commands:
       - echo Installing app dependencies...
-      - yum update -y
-      - amazon-linux-extras install docker
-      - service docker start
       - curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.18.9/2020-11-02/bin/linux/amd64/kubectl   
       - chmod +x ./kubectl
       - mkdir -p $HOME/bin && cp ./kubectl $HOME/bin/kubectl && export PATH=$PATH:$HOME/bin
@@ -38,10 +35,10 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...      
-      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 608420342248.dkr.ecr.us-east-1.amazonaws.com
-      - docker build -t tomcat-ecr-image .
-      - docker tag tomcat-ecr-image:latest 608420342248.dkr.ecr.us-east-1.amazonaws.com/tomcat-ecr-image:latest
-      - docker push 608420342248.dkr.ecr.us-east-1.amazonaws.com/tomcat-ecr-image:latest
+   #   - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 608420342248.dkr.ecr.us-east-1.amazonaws.com
+   #   - docker build -t tomcat-ecr-image .
+   #   - docker tag tomcat-ecr-image:latest 608420342248.dkr.ecr.us-east-1.amazonaws.com/tomcat-ecr-image:latest
+   #   - docker push 608420342248.dkr.ecr.us-east-1.amazonaws.com/tomcat-ecr-image:latest
   post_build:
     commands:
       - echo Push the latest image to cluster
