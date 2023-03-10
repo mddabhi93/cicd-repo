@@ -42,6 +42,19 @@ phases:
   post_build:
     commands:
       - echo Push the latest image to cluster
+      - echo "Setting Environment Variables related to AWS CLI for Kube Config Setup"          
+      - CREDENTIALS=$(aws sts assume-role --role-arn $EKS_ROLE_ARN --role-session-name eks-codebuild --duration-seconds 900)
+      - export AWS_ACCESS_KEY_ID="$(echo ${CREDENTIALS} | jq -r '.Credentials.AccessKeyId')"
+      - export AWS_SECRET_ACCESS_KEY="$(echo ${CREDENTIALS} | jq -r '.Credentials.SecretAccessKey')"
+      - export AWS_SESSION_TOKEN="$(echo ${CREDENTIALS} | jq -r '.Credentials.SessionToken')"
+      - export AWS_EXPIRATION=$(echo ${CREDENTIALS} | jq -r '.Credentials.Expiration') 
+      # Updating kubectl with your EKS Cluster              
+      - echo "Update Kube Config configuration"      
+      - aws eks --region us-east-1 update-kubeconfig --name $EKS_CLUSTERNAME
+      # Show time, applying manifests changes using kubectl
+      - echo "Apply changes to kube manifests"            
+      - kubectl apply -f manifests/
+      - echo "All done!!!! Kubernetes changes applied"       
       - kubectl apply -f eks_cicd/deployment.yaml
       - kubectl apply -f eks_cicd/service.yaml
       - kubectl rollout restart -f eks_cicd/deployment.yaml
